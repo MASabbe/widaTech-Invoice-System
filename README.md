@@ -49,6 +49,16 @@ A professional, full-stack Point of Sale (POS) modular feature built for managin
 - **Product**: `id (UUID)`, `name`, `picture`, `stock`, `price`.
 - **InvoiceItem**: `id (UUID)`, `quantity`, `priceAtPurchase`, `invoiceId (FK)`, `productId (FK)`.
 
+## 📋 Minimum Requirements
+
+Before installing, ensure your environment meets the following criteria:
+- **Node.js**: Version 20.x or newer (LTS recommended).
+- **NPM**: Version 10.x or newer.
+- **Memory (RAM)**: 1GB minimum (2GB recommended for the build process).
+- **Disk Space**: ~500MB for dependencies and initial database.
+- **Operating System**: Linux (Ubuntu 22.04+ recommended), macOS, or Windows with WSL2.
+- **Database**: Port 3306 available (if using MySQL) or write permissions for SQLite.
+
 ## ⚙️ Deployment (Personal VM Server)
 
 This project is optimized to run on a standalone VM (Ubuntu/CentOS/etc.) using Node.js.
