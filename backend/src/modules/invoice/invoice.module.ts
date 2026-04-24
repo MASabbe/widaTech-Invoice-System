@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Invoice } from '../entities/Invoice';
-import { InvoiceItem } from '../entities/InvoiceItem';
+import { Invoice } from '../../entities/Invoice';
+import { InvoiceItem } from '../../entities/InvoiceItem';
 import { InvoiceService } from './invoice.service';
 import { InvoiceController } from './invoice.controller';
 

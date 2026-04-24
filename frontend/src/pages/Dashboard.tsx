@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { InvoiceForm } from "../components/InvoiceForm";
-import { InvoiceList } from "../components/InvoiceList";
-import { RevenueAnalytics } from "../components/RevenueAnalytics";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/Tabs";
+import { InvoiceForm } from '../components/InvoiceForm';
+import { InvoiceList } from '../components/InvoiceList';
+import { RevenueAnalytics } from '../components/RevenueAnalytics';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { motion, AnimatePresence } from "motion/react";
 import { Plus, ListFilter, BarChart3 } from "lucide-react";
 

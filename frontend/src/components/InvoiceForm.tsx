@@ -4,7 +4,7 @@ import { Search, User, UserCheck, Calendar as CalendarIcon, Plus, X, Receipt, Ch
 import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { useDebounce } from "../lib/hooks";
+import { useDebounce } from "../hooks/useDebounce";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
