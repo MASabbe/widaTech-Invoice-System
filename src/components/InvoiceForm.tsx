@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, User, UserCheck, Calendar as CalendarIcon, Plus, X, Receipt, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, User, UserCheck, Calendar as CalendarIcon, Plus, X, Receipt, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useDebounce } from "../lib/hooks";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -20,19 +21,52 @@ export function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
   
   const [items, setItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Search Products
-  const { data: products = [] } = useQuery({
-    queryKey: ["products", searchTerm],
+  const { data: products = [], isFetching } = useQuery({
+    queryKey: ["products", debouncedSearchTerm],
     queryFn: async () => {
-      if (searchTerm.length < 2) return [];
-      const res = await fetch(`/api/products/search?q=${searchTerm}`);
+      if (debouncedSearchTerm.length < 2) return [];
+      const res = await fetch(`/api/products/search?q=${debouncedSearchTerm}`);
       return res.json();
     },
-    enabled: searchTerm.length >= 2,
+    enabled: debouncedSearchTerm.length >= 2,
   });
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [products]);
+
+  const addItem = (product: any) => {
+    const existing = items.find((i) => i.productId === product.id);
+    if (existing) {
+      setItems(items.map((i) => i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i));
+    } else {
+      setItems([...items, { productId: product.id, name: product.name, price: product.price, quantity: 1, picture: product.picture }]);
+    }
+    setSearchTerm("");
+    setSelectedIndex(-1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (products.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      setSelectedIndex((prev) => (prev < products.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === "Enter" && selectedIndex >= 0) {
+      e.preventDefault();
+      addItem(products[selectedIndex]);
+    } else if (e.key === "Escape") {
+      setSearchTerm("");
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: async (invoiceData: any) => {
@@ -53,16 +87,6 @@ export function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
       }, 2000);
     },
   });
-
-  const addItem = (product: any) => {
-    const existing = items.find((i) => i.productId === product.id);
-    if (existing) {
-      setItems(items.map((i) => i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i));
-    } else {
-      setItems([...items, { productId: product.id, name: product.name, price: product.price, quantity: 1, picture: product.picture }]);
-    }
-    setSearchTerm("");
-  };
 
   const removeItem = (id: string) => {
     setItems(items.filter((i) => i.productId !== id));
@@ -156,38 +180,55 @@ export function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
           
           <div className="relative">
             <div className="relative">
-              <Search size={20} className="absolute left-4 top-3.5 text-slate-400" />
+              <div className="absolute left-4 top-3.5 flex items-center pointer-events-none">
+                {isFetching ? (
+                  <Loader2 size={20} className="text-indigo-500 animate-spin" />
+                ) : (
+                  <Search size={20} className="text-slate-400" />
+                )}
+              </div>
               <input 
                 type="text" 
                 placeholder="Search products (MacBook, iPhone...)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                onKeyDown={handleKeyDown}
+                className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
               />
             </div>
             
             <AnimatePresence>
-              {products.length > 0 && (
+              {(products.length > 0 || (searchTerm.length >= 2 && !isFetching && products.length === 0)) && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
                   className="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+                  ref={dropdownRef}
                 >
-                  {products.map((p: any) => (
-                    <button
-                      key={p.id}
-                      onClick={() => addItem(p)}
-                      className="w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0"
-                    >
-                      <img src={p.picture} className="w-12 h-12 rounded-lg object-cover" />
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-800">{p.name}</p>
-                        <p className="text-sm text-slate-500">Stock: {p.stock} units</p>
-                      </div>
-                      <p className="font-black text-indigo-600">${Number(p.price).toLocaleString()}</p>
-                    </button>
-                  ))}
+                  {products.length > 0 ? (
+                    products.map((p: any, index: number) => (
+                      <button
+                        key={p.id}
+                        onClick={() => addItem(p)}
+                        className={cn(
+                          "w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors text-left border-b border-slate-50 last:border-0",
+                          selectedIndex === index && "bg-indigo-50"
+                        )}
+                      >
+                        <img src={p.picture} className="w-12 h-12 rounded-lg object-cover bg-slate-100" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-800 truncate">{p.name}</p>
+                          <p className="text-sm text-slate-500">Stock: {p.stock} units</p>
+                        </div>
+                        <p className="font-black text-indigo-600 shrink-0">${Number(p.price).toLocaleString()}</p>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-400">
+                      No products found matching "{searchTerm}"
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
