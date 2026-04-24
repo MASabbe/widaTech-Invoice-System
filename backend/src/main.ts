@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AppDataSource } from './data-source';
 import { Product } from './entities/Product';
@@ -8,6 +9,17 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
   app.enableCors();
+
+  // Setup Swagger
+  const config = new DocumentBuilder()
+    .setTitle('WidaTech POS API')
+    .setDescription('Professional Point of Sale Modular API Documentation')
+    .setVersion('1.0')
+    .addTag('invoices')
+    .addTag('products')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
 
   // Initialize DB Seeding
   await AppDataSource.initialize();
@@ -29,12 +41,12 @@ async function bootstrap() {
   if ((await invoiceRepo.count()) === 0) {
     const products = await productRepo.find();
     const sampleInvoices = [
-      { date: "2021-01-01", customer: "John", sales: "Doe", notes: "Lorem ipsum" },
-      { date: "2021-01-01", customer: "John", sales: "Doe", notes: "Lorem ipsum" },
-      { date: "2021-01-03", customer: "Jane", sales: "Doe", notes: "Lorem ipsum" },
-      { date: "2021-01-04", customer: "Rock", sales: "Pete", notes: "Lorem ipsum" },
-      { date: "2021-01-04", customer: "Frank", sales: "Internal", notes: "Lorem ipsum" },
-      { date: "2021-01-05", customer: "Jeff", sales: "Pete", notes: "Lorem ipsum" },
+      { date: "2021-01-01", customer: "John", sales: "Doe", notes: "Lorem ipsum", paymentType: "CASH" },
+      { date: "2021-01-01", customer: "John", sales: "Doe", notes: "Lorem ipsum", paymentType: "CASH" },
+      { date: "2021-01-03", customer: "Jane", sales: "Doe", notes: "Lorem ipsum", paymentType: "CREDIT" },
+      { date: "2021-01-04", customer: "Rock", sales: "Pete", notes: "Lorem ipsum", paymentType: "TRANSFER" },
+      { date: "2021-01-04", customer: "Frank", sales: "Internal", notes: "Lorem ipsum", paymentType: "CASH" },
+      { date: "2021-01-05", customer: "Jeff", sales: "Pete", notes: "Lorem ipsum", paymentType: "TRANSFER" },
     ];
 
     for (const data of sampleInvoices) {
@@ -43,6 +55,7 @@ async function bootstrap() {
         salespersonName: data.sales,
         date: new Date(data.date),
         notes: data.notes,
+        paymentType: data.paymentType,
         totalAmount: products[0].price,
         items: [{
           product: products[0],

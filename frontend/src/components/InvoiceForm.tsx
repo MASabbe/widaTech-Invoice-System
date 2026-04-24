@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, User, UserCheck, Calendar as CalendarIcon, Plus, X, Receipt, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Search, User, UserCheck, Calendar as CalendarIcon, Plus, X, Receipt, CheckCircle2, AlertCircle, Loader2, CreditCard } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -17,6 +17,7 @@ export function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     salespersonName: "",
     date: new Date().toISOString().split("T")[0],
     notes: "",
+    paymentType: "CASH" as "CASH" | "TRANSFER",
   });
   
   const [items, setItems] = useState<any[]>([]);
@@ -167,6 +168,38 @@ export function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
                   placeholder="Internal notes..."
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all"
                />
+            </div>
+
+            <div className="space-y-3 md:col-span-2">
+               <label className="text-sm font-medium text-slate-700">Payment Type *</label>
+               <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, paymentType: "CASH" })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-bold",
+                      formData.paymentType === "CASH" 
+                        ? "bg-indigo-50 border-indigo-500 text-indigo-700 shadow-sm" 
+                        : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                    )}
+                  >
+                    <Receipt size={18} />
+                    Cash / Tunai
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, paymentType: "TRANSFER" })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-bold",
+                      formData.paymentType === "TRANSFER" 
+                        ? "bg-indigo-50 border-indigo-500 text-indigo-700 shadow-sm" 
+                        : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                    )}
+                  >
+                    <CreditCard size={18} className="translate-y-[1px]" />
+                    Transfer Bank
+                  </button>
+               </div>
             </div>
           </div>
         </section>

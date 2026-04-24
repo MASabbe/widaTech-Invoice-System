@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, DataSource } from 'typeorm';
-import { Invoice } from '../entities/Invoice';
-import { InvoiceItem } from '../entities/InvoiceItem';
+import { Invoice } from '../../entities/Invoice';
+import { InvoiceItem } from '../../entities/InvoiceItem';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class InvoiceService {
     await queryRunner.startTransaction();
 
     try {
-      const { customerName, salespersonName, date, notes, items } = createInvoiceDto;
+      const { customerName, salespersonName, date, notes, items, paymentType } = createInvoiceDto;
 
       // 1. Hitung totalAmount di server untuk validasi (Anti-tamper)
       const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -32,6 +32,7 @@ export class InvoiceService {
         salespersonName,
         date: new Date(date),
         notes,
+        paymentType: paymentType || 'CASH',
         totalAmount,
       });
 

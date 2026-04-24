@@ -30,22 +30,29 @@ A professional, full-stack Point of Sale (POS) modular feature built for managin
 ## 📂 Project Structure
 
 ```text
-├── src/
-│   ├── components/       # Reusable UI components (Form, List, Charts)
-│   ├── pages/            # Page-level components
-│   ├── server/           # NestJS Backend Logic
-│   │   ├── entities/     # TypeORM Database Models
-│   │   ├── invoice/      # Invoice Module (Controller, Service)
-│   │   └── product/      # Product Module (Controller, Service)
-│   └── main.tsx          # Frontend Entry Point
-├── server.ts             # Main Server Entry (NestJS + Vite Middleware)
-├── package.json          # Dependencies & Scripts
-└── README.md             # Documentation
+├── backend/                # NestJS Application
+│   ├── src/
+│   │   ├── modules/        # Modular Services (Invoice, Product)
+│   │   ├── entities/       # TypeORM Models
+│   │   └── main.ts         # API Entry Point (Port 3001)
+├── frontend/               # React + Vite Application
+│   ├── src/
+│   │   ├── components/     # UI Components
+│   │   ├── hooks/          # Custom Hooks (Debounce, etc)
+│   │   └── main.tsx        # Frontend Entry Point (Port 3000)
+├── package.json            # Root scripts (Orchestration)
+└── README.md               # Documentation
 ```
+
+## 📖 API Documentation (Swagger)
+
+The backend includes a comprehensive Swagger UI for API exploration and testing.
+- **URL**: `http://localhost:3001/api/docs`
+- **Features**: Interactive testing, schema definitions, and endpoint grouping.
 
 ## 📊 Database Schema (ERD Overview)
 
-- **Invoice**: `id (UUID)`, `customerName`, `salespersonName`, `totalAmount`, `date`, `notes`, `createdAt`.
+- **Invoice**: `id (UUID)`, `customerName`, `salespersonName`, `paymentType (CASH/TRANSFER)`, `totalAmount`, `date`, `notes`, `createdAt`.
 - **Product**: `id (UUID)`, `name`, `picture`, `stock`, `price`.
 - **InvoiceItem**: `id (UUID)`, `quantity`, `priceAtPurchase`, `invoiceId (FK)`, `productId (FK)`.
 

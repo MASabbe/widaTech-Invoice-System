@@ -51,9 +51,9 @@ export function InvoiceList() {
               <div className="flex items-center gap-4 text-sm text-slate-500 bg-slate-50 p-3 rounded-xl">
                 <Calendar size={16} />
                 <span>{format(new Date(inv.date), "PPP")}</span>
-                <span className="ml-auto flex items-center gap-1 text-slate-400">
+                <span className="ml-auto flex items-center gap-1 text-slate-400 font-bold uppercase truncate max-w-[100px]">
                   <CreditCard size={14} />
-                  Cash/Transfer
+                  {inv.paymentType || 'CASH'}
                 </span>
               </div>
 

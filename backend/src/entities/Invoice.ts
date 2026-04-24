@@ -18,6 +18,9 @@ export class Invoice {
   @Column({ type: "decimal", precision: 15, scale: 2 })
   totalAmount: number;
 
+  @Column({ type: "varchar", length: 50, default: 'CASH' })
+  paymentType: string;
+
   @Column({ type: "text", nullable: true })
   notes: string;
 
