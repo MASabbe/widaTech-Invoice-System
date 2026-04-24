@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 
-@Controller('api/invoices')
+@Controller('invoices')
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 

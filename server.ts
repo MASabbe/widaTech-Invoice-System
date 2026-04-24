@@ -76,20 +76,30 @@ async function bootstrap() {
 
   // 3. Setup NestJS App
   const app = await NestFactory.create(AppModule);
-  app.enableCors(); // Essential for VM/Remote access
   
-  // 4. Setup Delivery Strategy (Vite for Dev, Static for VM Production)
+  // Set global prefix for all controllers
+  app.setGlobalPrefix('api');
+  
+  app.enableCors();
+  
+  // 4. Setup Delivery Strategy
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
+    
+    // Mount Vite middleware. NestJS controllers are registered first, 
+    // so API routes will be handled before reaching this middleware.
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
+    // Serve static files for production
     app.use(express.static(distPath));
-    // SPA Fallback for production (handle client-side routing)
-    app.use((req, res, next) => {
+    
+    // SPA Fallback for production: If not an API route, serve index.html
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.get('*', (req: any, res: any, next: any) => {
       if (!req.path.startsWith('/api')) {
         res.sendFile(path.join(distPath, "index.html"));
       } else {
