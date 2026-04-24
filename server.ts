@@ -26,12 +26,16 @@ import path from 'path';
 class AppModule {}
 
 async function bootstrap() {
-  const server = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
 
-  // 1. Initialize DB Seeding (Optional, for demo)
+  // Initialize DB Connection
   await AppDataSource.initialize();
+  console.log("Database Connection Initialized");
+
   const productRepo = AppDataSource.getRepository(Product);
+  const invoiceRepo = AppDataSource.getRepository(Invoice);
+
+  // 1. Seed Products if empty
   if (await productRepo.count() === 0) {
     await productRepo.save([
       { name: "MacBook Pro M3", picture: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=200", stock: 10, price: 1999.00 },
@@ -40,12 +44,41 @@ async function bootstrap() {
     ]);
   }
 
-  // 2. Setup NestJS App
-  const app = await NestFactory.create(AppModule, { 
-    bodyParser: true 
-  });
+  // 2. Seed Sample Invoices from provided image if empty
+  if (await invoiceRepo.count() === 0) {
+    const products = await productRepo.find();
+    const sampleInvoices = [
+      { date: "2021-01-01", customer: "John", sales: "Doe", notes: "Lorem ipsum" },
+      { date: "2021-01-01", customer: "John", sales: "Doe", notes: "Lorem ipsum" },
+      { date: "2021-01-03", customer: "Jane", sales: "Doe", notes: "Lorem ipsum" },
+      { date: "2021-01-04", customer: "Rock", sales: "Pete", notes: "Lorem ipsum" },
+      { date: "2021-01-04", customer: "Frank", sales: "Internal", notes: "Lorem ipsum" },
+      { date: "2021-01-05", customer: "Jeff", sales: "Pete", notes: "Lorem ipsum" },
+    ];
+
+    for (const data of sampleInvoices) {
+      const invoice = invoiceRepo.create({
+        customerName: data.customer,
+        salespersonName: data.sales,
+        date: new Date(data.date),
+        notes: data.notes,
+        totalAmount: products[0].price,
+        items: [{
+          product: products[0],
+          quantity: 1,
+          priceAtPurchase: products[0].price
+        }]
+      });
+      await invoiceRepo.save(invoice);
+    }
+    console.log("Sample data seeded from input image.");
+  }
+
+  // 3. Setup NestJS App
+  const app = await NestFactory.create(AppModule);
+  app.enableCors(); // Essential for VM/Remote access
   
-  // 3. Setup Vite Middleware
+  // 4. Setup Delivery Strategy (Vite for Dev, Static for VM Production)
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -55,10 +88,19 @@ async function bootstrap() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
+    // SPA Fallback for production (handle client-side routing)
+    app.use((req, res, next) => {
+      if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(distPath, "index.html"));
+      } else {
+        next();
+      }
+    });
   }
 
   await app.listen(PORT, "0.0.0.0");
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Production-ready server running on http://localhost:${PORT}`);
 }
 
 bootstrap();

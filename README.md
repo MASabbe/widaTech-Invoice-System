@@ -49,38 +49,45 @@ A professional, full-stack Point of Sale (POS) modular feature built for managin
 - **Product**: `id (UUID)`, `name`, `picture`, `stock`, `price`.
 - **InvoiceItem**: `id (UUID)`, `quantity`, `priceAtPurchase`, `invoiceId (FK)`, `productId (FK)`.
 
-## ⚙️ Installation
+## ⚙️ Deployment (Personal VM Server)
 
-1. **Clone the repository**:
+This project is optimized to run on a standalone VM (Ubuntu/CentOS/etc.) using Node.js.
+
+1. **Install Node.js & NPM**:
+   Ensure you have Node.js 20+ installed.
+
+2. **Clone & Install**:
    ```bash
    git clone <repository-url>
    cd wida-tech-pos
-   ```
-
-2. **Install dependencies**:
-   ```bash
    npm install
    ```
 
-3. **Configure Environment**:
-   Create a `.env` file based on `.env.example` if needed (The system handles defaults automatically in the current environment).
+3. **Database Setup**:
+   The current configuration uses SQLite (`database.sqlite`) for portability. For production MySQL, update `.env` and `src/server/data-source.ts`.
 
-4. **Run Development Server**:
+4. **Build & Run**:
    ```bash
-   npm run dev
-   ```
-
-5. **Build for Production**:
-   ```bash
+   # Build the frontend assets
    npm run build
+   
+   # Start the production server
    npm start
    ```
 
-## 📝 Usage
+5. **Process Management (PM2)**:
+   It's recommended to use PM2 to keep the server running:
+   ```bash
+   npm install -g pm2
+   pm2 start npm --name "widapos" -- start
+   ```
 
-- **Creating an Invoice**: Navigate to the "New Invoice" tab. Start typing product names (e.g., "MacBook") to see the autocomplete in action. Fill in customer details and hit "Complete Transaction".
-- **Viewing Analytics**: Go to the "Analytics" tab to view revenue trends. Use the buttons to toggle between daily, weekly, and monthly views.
-- **History**: The "History" tab displays all published invoices with professional cards and summary details.
+## 📊 Sample Data
+
+The application now comes pre-seeded with the sample invoice data provided in the challenge prompt:
+- Invoices for John Doe (CASH)
+- Invoices for Jane Doe (CREDIT)
+- Transaction notes and multi-user salesperson attribution as shown in the audit log input sample.
 
 ## ⚖️ License
 This project is licensed under the Apache-2.0 License.
